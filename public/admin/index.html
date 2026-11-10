@@ -1,0 +1,3130 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Majelis Sayur — Admin Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            moss: "#4A5E3A",
+                            "moss-dark": "#2D3A22",
+                            "moss-light": "#6B7F58",
+                            soil: "#5C3D2E",
+                            "soil-light": "#8B6355",
+                            cream: "#F5F0E8",
+                            "cream-dark": "#EDE5D4",
+                            "cream-paper": "#F9F5EE",
+                            terracotta: "#C4714A",
+                            "terracotta-light": "#D4956E",
+                            olive: "#3D4A2A",
+                            "olive-mid": "#5A6B45",
+                            parchment: "#E8DFC8",
+                            ink: "#1C1C18",
+                            "ink-light": "#3A3A32",
+                        },
+                        fontFamily: {
+                            serif: ["'Playfair Display'", "Georgia", "serif"],
+                            sans: ["'DM Sans'", "sans-serif"],
+                            mono: ["'DM Mono'", "monospace"],
+                        },
+                    },
+                },
+            };
+        </script>
+        <style>
+            body {
+                background: #f5f0e8;
+                color: #1c1c18;
+            }
+            .card-paper {
+                background: #f9f5ee;
+                border: 1px solid #e8dfc8;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 20px rgba(28, 28, 24, 0.05);
+            }
+            .sidebar-item {
+                border-right: 3px solid transparent;
+                transition: all 0.2s;
+                cursor: pointer;
+            }
+            .sidebar-item:hover,
+            .sidebar-item.active {
+                background: #ede5d4;
+                color: #2d3a22;
+                border-right-color: #4a5e3a;
+            }
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #d4c9b0;
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #6b7f58;
+            }
+            .tab-content {
+                display: none;
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            .tab-content.active {
+                display: block;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .form-field label {
+                display: block;
+                font-size: 0.7rem;
+                font-family: "DM Mono", monospace;
+                color: #8b6355;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.35rem;
+            }
+            .form-field input,
+            .form-field select,
+            .form-field textarea {
+                width: 100%;
+                padding: 0.6rem 0.75rem;
+                border: 1px solid #e8dfc8;
+                border-radius: 0.5rem;
+                background: #f5f0e8;
+                font-size: 0.875rem;
+                font-family: "DM Sans", sans-serif;
+                color: #1c1c18;
+                outline: none;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+            }
+            .form-field input:focus,
+            .form-field select:focus,
+            .form-field textarea:focus {
+                border-color: #4a5e3a;
+                box-shadow: 0 0 0 3px rgba(74, 94, 58, 0.1);
+            }
+            .form-field textarea {
+                resize: vertical;
+                min-height: 76px;
+            }
+            .dtable {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .dtable th {
+                padding: 0.65rem 1rem;
+                text-align: left;
+                font-size: 0.68rem;
+                font-family: "DM Mono", monospace;
+                color: #8b6355;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                background: #ede5d4;
+                border-bottom: 1px solid #e8dfc8;
+                white-space: nowrap;
+            }
+            .dtable td {
+                padding: 0.65rem 1rem;
+                border-bottom: 1px solid #e8dfc8;
+                font-size: 0.875rem;
+                vertical-align: middle;
+            }
+            .dtable tr:last-child td {
+                border-bottom: none;
+            }
+            .dtable tr:hover td {
+                background: rgba(237, 229, 212, 0.35);
+            }
+            .badge {
+                display: inline-block;
+                font-size: 0.65rem;
+                font-family: "DM Mono", monospace;
+                padding: 0.1rem 0.45rem;
+                border-radius: 0.25rem;
+                white-space: nowrap;
+            }
+            .toast-item {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                padding: 0.7rem 1rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 20px rgba(28, 28, 24, 0.15);
+                font-size: 0.875rem;
+                font-weight: 500;
+                pointer-events: auto;
+                transition: all 0.3s ease;
+                max-width: 300px;
+            }
+            .btn-icon {
+                padding: 0.35rem;
+                border-radius: 0.4rem;
+                transition: background 0.15s;
+                cursor: pointer;
+                display: inline-flex;
+            }
+            .btn-icon:hover {
+                background: rgba(74, 94, 58, 0.1);
+            }
+            .btn-icon.del:hover {
+                background: rgba(196, 113, 74, 0.1);
+            }
+            .empty-state {
+                padding: 4rem 2rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body class="font-sans flex h-screen overflow-hidden">
+        <!-- Sidebar Backdrop (Mobile only) -->
+        <div
+            id="sidebar-backdrop"
+            class="fixed inset-0 bg-ink/40 z-30 hidden"
+            onclick="toggleSidebar(false)"
+        ></div>
+
+        <!-- ── Sidebar ─────────────────────────────────────────────── -->
+        <aside
+            id="admin-sidebar"
+            class="fixed md:static inset-y-0 left-0 w-64 bg-cream-paper border-r border-parchment flex flex-col h-full z-40 flex-shrink-0 -translate-x-full md:translate-x-0 transition-transform duration-300"
+        >
+            <div
+                class="p-6 border-b border-parchment flex items-center justify-between"
+            >
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded bg-moss flex items-center justify-center text-cream font-serif font-bold text-xl"
+                    >
+                        M
+                    </div>
+                    <h1 class="font-serif font-bold text-xl text-moss-dark">
+                        Majelis Sayur
+                    </h1>
+                </div>
+                <button
+                    onclick="toggleSidebar(false)"
+                    class="p-1.5 text-moss hover:bg-cream-dark rounded-lg md:hidden transition-colors"
+                    aria-label="Close Sidebar"
+                >
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto">
+                <a
+                    href="/"
+                    class="flex items-center gap-2 mb-6 text-xs font-mono text-moss hover:underline pl-4"
+                >
+                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke
+                    Web
+                </a>
+                <div
+                    class="mb-3 text-xs font-mono text-soil-light uppercase tracking-wider pl-4"
+                >
+                    Dashboards
+                </div>
+                <nav class="space-y-0.5 mb-6">
+                    <a
+                        onclick="switchTab('tab-dashboard', this)"
+                        class="sidebar-item active flex items-center gap-3 px-4 py-2.5 rounded-lg text-moss-dark font-medium"
+                    >
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        Dashboard
+                    </a>
+                    <a
+                        onclick="switchTab('tab-peta', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="map" class="w-4 h-4"></i> Peta Kebun
+                        <span
+                            id="bdg-peta"
+                            class="ml-auto badge bg-moss/10 text-moss hidden"
+                            >0</span
+                        >
+                    </a>
+                    <a
+                        onclick="switchTab('tab-warga', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="users" class="w-4 h-4"></i> Data Warga
+                        <span
+                            id="bdg-warga"
+                            class="ml-auto badge bg-terracotta/10 text-terracotta hidden"
+                            >0</span
+                        >
+                    </a>
+                </nav>
+                <div
+                    class="mb-3 text-xs font-mono text-soil-light uppercase tracking-wider pl-4"
+                >
+                    Katalog &amp; Agenda
+                </div>
+                <nav class="space-y-0.5 mb-6">
+                    <a
+                        onclick="switchTab('tab-katalog', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="leaf" class="w-4 h-4"></i> Katalog Hijau
+                        <span
+                            id="bdg-katalog"
+                            class="ml-auto badge bg-moss/10 text-moss hidden"
+                            >0</span
+                        >
+                    </a>
+                    <a
+                        onclick="switchTab('tab-agenda', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                        Agenda Acara
+                        <span
+                            id="bdg-agenda"
+                            class="ml-auto badge bg-soil/10 text-soil hidden"
+                            >0</span
+                        >
+                    </a>
+                    <a
+                        onclick="switchTab('tab-arsip', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Jurnal
+                        &amp; Arsip
+                        <span
+                            id="bdg-arsip"
+                            class="ml-auto badge bg-olive/10 text-olive hidden"
+                            >0</span
+                        >
+                    </a>
+                </nav>
+                <div
+                    class="mb-3 text-xs font-mono text-soil-light uppercase tracking-wider pl-4"
+                >
+                    Sistem
+                </div>
+                <nav class="space-y-0.5">
+                    <a
+                        onclick="switchTab('tab-pengaturan', this)"
+                        class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-ink-light"
+                    >
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        Pengaturan
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- ── Main ────────────────────────────────────────────────── -->
+        <main
+            class="flex-1 flex flex-col h-full bg-cream relative overflow-hidden"
+        >
+            <div
+                class="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
+                style="
+                    background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22200%22 height=%22200%22 filter=%22url(%23n)%22/%3E%3C/svg%3E&quot;);
+                    background-size: 200px;
+                "
+            ></div>
+
+            <!-- Header -->
+            <header
+                class="h-14 border-b border-parchment bg-cream-paper/80 backdrop-blur flex items-center justify-between px-6 z-10 flex-shrink-0"
+            >
+                <div class="flex items-center gap-3">
+                    <button
+                        onclick="toggleSidebar(true)"
+                        class="p-1.5 text-moss hover:bg-cream-dark rounded-lg md:hidden transition-colors flex-shrink-0"
+                        aria-label="Open Sidebar"
+                    >
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div class="flex items-center gap-2 w-48 sm:w-80">
+                        <i
+                            data-lucide="search"
+                            class="w-4 h-4 text-moss-light"
+                        ></i>
+                        <input
+                            type="text"
+                            placeholder="Cari data…"
+                            class="bg-transparent border-none outline-none text-sm w-full placeholder:text-moss-light/70"
+                        />
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button
+                        class="p-1.5 text-moss hover:bg-cream-dark rounded-full transition-colors"
+                    >
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <div
+                            id="admin-avatar"
+                            class="w-8 h-8 rounded-full bg-terracotta flex items-center justify-center text-cream text-sm font-bold"
+                        >
+                            A
+                        </div>
+                        <span
+                            id="admin-name-disp"
+                            class="text-sm text-ink-light hidden md:block"
+                            >Admin</span
+                        >
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-6 overflow-y-auto z-10 flex-1">
+                <!-- ── DASHBOARD ──────────────────────────────────── -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                        <div
+                            class="card-paper p-6 relative overflow-hidden flex flex-col justify-between"
+                        >
+                            <div class="z-10 relative">
+                                <h2
+                                    class="font-serif text-xl font-bold text-moss-dark mb-1"
+                                >
+                                    Halo Admin! 👋
+                                </h2>
+                                <p class="text-sm text-soil-light mb-4">
+                                    Kelola data Majelis Sayur dari sini.
+                                </p>
+                                <div class="mb-4">
+                                    <span
+                                        class="text-3xl font-bold text-moss"
+                                        id="st-kebun"
+                                        >0</span
+                                    ><span
+                                        class="text-sm font-medium text-moss-light ml-1"
+                                        >Kebun Terdaftar</span
+                                    >
+                                </div>
+                                <button
+                                    onclick="
+                                        switchTab(
+                                            'tab-peta',
+                                            document.querySelectorAll(
+                                                '.sidebar-item',
+                                            )[1],
+                                        )
+                                    "
+                                    class="bg-moss text-cream text-xs font-medium px-4 py-2 rounded shadow hover:bg-moss-dark transition-colors"
+                                >
+                                    LIHAT PETA
+                                </button>
+                            </div>
+                            <div class="absolute -bottom-4 -right-4 opacity-10">
+                                <i
+                                    data-lucide="sprout"
+                                    class="w-28 h-28 text-moss"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="card-paper p-6 col-span-2">
+                            <h3
+                                class="font-serif text-lg font-bold text-moss-dark mb-4"
+                            >
+                                Ringkasan Ekosistem
+                            </h3>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="flex flex-col gap-2">
+                                    <div
+                                        class="w-10 h-10 rounded bg-moss/10 flex items-center justify-center text-moss"
+                                    >
+                                        <i
+                                            data-lucide="users"
+                                            class="w-5 h-5"
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs font-mono text-soil-light"
+                                        >
+                                            Warga
+                                        </p>
+                                        <p
+                                            class="text-xl font-bold text-ink"
+                                            id="st-warga"
+                                        >
+                                            0
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <div
+                                        class="w-10 h-10 rounded bg-terracotta/10 flex items-center justify-center text-terracotta"
+                                    >
+                                        <i
+                                            data-lucide="leaf"
+                                            class="w-5 h-5"
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs font-mono text-soil-light"
+                                        >
+                                            Produk
+                                        </p>
+                                        <p
+                                            class="text-xl font-bold text-ink"
+                                            id="st-katalog"
+                                        >
+                                            0
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <div
+                                        class="w-10 h-10 rounded bg-soil/10 flex items-center justify-center text-soil"
+                                    >
+                                        <i
+                                            data-lucide="calendar-check"
+                                            class="w-5 h-5"
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs font-mono text-soil-light"
+                                        >
+                                            Agenda
+                                        </p>
+                                        <p
+                                            class="text-xl font-bold text-ink"
+                                            id="st-agenda"
+                                        >
+                                            0
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <div
+                                        class="w-10 h-10 rounded bg-olive/10 flex items-center justify-center text-olive"
+                                    >
+                                        <i
+                                            data-lucide="archive"
+                                            class="w-5 h-5"
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs font-mono text-soil-light"
+                                        >
+                                            Arsip
+                                        </p>
+                                        <p
+                                            class="text-xl font-bold text-ink"
+                                            id="st-arsip"
+                                        >
+                                            0
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+                        <div class="card-paper p-6 lg:col-span-2">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3
+                                    class="font-serif text-lg font-bold text-moss-dark"
+                                >
+                                    Partisipasi Komunitas (Bulanan)
+                                </h3>
+                            </div>
+                            <div class="h-56">
+                                <canvas id="participationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-paper p-6">
+                            <h3
+                                class="font-serif text-lg font-bold text-moss-dark mb-4"
+                            >
+                                Aktivitas Terbaru
+                            </h3>
+                            <div id="recent-activity" class="space-y-2.5">
+                                <p
+                                    class="text-sm text-soil-light text-center py-4 font-mono"
+                                >
+                                    Belum ada aktivitas
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <div class="card-paper p-6">
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <h3
+                                        class="font-serif text-lg font-bold text-moss-dark"
+                                    >
+                                        Pertumbuhan Kebun
+                                    </h3>
+                                    <p class="text-xs text-soil-light">
+                                        Area terkelola (m²)
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="h-40">
+                                <canvas id="growthChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-paper p-6">
+                            <h3
+                                class="font-serif text-lg font-bold text-moss-dark mb-3"
+                            >
+                                Kategori Kebun
+                            </h3>
+                            <div class="h-48">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-paper p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3
+                                    class="font-serif text-lg font-bold text-moss-dark"
+                                >
+                                    Agenda Terdekat
+                                </h3>
+                                <a
+                                    onclick="
+                                        switchTab(
+                                            'tab-agenda',
+                                            document.querySelectorAll(
+                                                '.sidebar-item',
+                                            )[4],
+                                        )
+                                    "
+                                    class="text-xs font-mono text-moss hover:underline cursor-pointer"
+                                    >LIHAT SEMUA</a
+                                >
+                            </div>
+                            <div id="upcoming-preview">
+                                <p
+                                    class="text-sm text-soil-light text-center py-4 font-mono"
+                                >
+                                    Belum ada agenda
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── PETA KEBUN ─────────────────────────────────── -->
+                <div id="tab-peta" class="tab-content">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2
+                                class="font-serif text-2xl font-bold text-moss-dark"
+                            >
+                                Peta Kebun
+                            </h2>
+                            <p class="text-sm text-soil-light mt-0.5 font-mono">
+                                Kelola lokasi dan informasi kebun Majelis Sayur
+                            </p>
+                        </div>
+                        <button
+                            onclick="openAdd('peta')"
+                            class="flex items-center gap-2 bg-moss text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-moss-dark transition-colors shadow-sm"
+                        >
+                            <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+                            Kebun
+                        </button>
+                    </div>
+                    <div class="card-paper p-3 mb-4 flex items-center gap-3">
+                        <i
+                            data-lucide="search"
+                            class="w-4 h-4 text-moss-light flex-shrink-0"
+                        ></i
+                        ><input
+                            type="text"
+                            id="srch-peta"
+                            oninput="renderMod('peta')"
+                            placeholder="Cari nama kebun, petani, lokasi…"
+                            class="bg-transparent border-none outline-none text-sm w-full placeholder:text-moss-light/60"
+                        />
+                    </div>
+                    <div class="card-paper overflow-hidden" id="wrap-peta">
+                        <table class="dtable">
+                            <thead>
+                                <tr>
+                                    <th>Nama Kebun</th>
+                                    <th>Tipe</th>
+                                    <th>Petani</th>
+                                    <th>Anggota</th>
+                                    <th>Luas</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-peta"></tbody>
+                        </table>
+                    </div>
+                    <div
+                        id="empty-peta"
+                        class="card-paper empty-state"
+                        style="display: none"
+                    >
+                        <i
+                            data-lucide="map-pin-off"
+                            class="w-12 h-12 text-moss/20 mb-4"
+                        ></i>
+                        <h3
+                            class="font-serif text-xl font-bold text-moss-dark mb-2"
+                        >
+                            Belum ada kebun
+                        </h3>
+                        <p class="text-sm text-soil-light mb-5 max-w-xs">
+                            Tambahkan lokasi dan informasi kebun pertama Majelis
+                            Sayur.
+                        </p>
+                        <button
+                            onclick="openAdd('peta')"
+                            class="bg-moss text-cream px-5 py-2 rounded-lg text-sm font-medium hover:bg-moss-dark transition-colors"
+                        >
+                            Tambah Kebun Pertama
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── DATA WARGA ─────────────────────────────────── -->
+                <div id="tab-warga" class="tab-content">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2
+                                class="font-serif text-2xl font-bold text-moss-dark"
+                            >
+                                Data Warga
+                            </h2>
+                            <p class="text-sm text-soil-light mt-0.5 font-mono">
+                                Kelola fasilitator dan anggota Majelis Sayur
+                            </p>
+                        </div>
+                        <button
+                            onclick="openAdd('warga')"
+                            class="flex items-center gap-2 bg-terracotta text-cream px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
+                        >
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            Tambah Warga
+                        </button>
+                    </div>
+                    <div class="card-paper p-3 mb-4 flex items-center gap-3">
+                        <i
+                            data-lucide="search"
+                            class="w-4 h-4 text-moss-light flex-shrink-0"
+                        ></i
+                        ><input
+                            type="text"
+                            id="srch-warga"
+                            oninput="renderMod('warga')"
+                            placeholder="Cari nama, kelompok, lokasi…"
+                            class="bg-transparent border-none outline-none text-sm w-full placeholder:text-moss-light/60"
+                        />
+                    </div>
+                    <div class="card-paper overflow-hidden" id="wrap-warga">
+                        <table class="dtable">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Peran</th>
+                                    <th>Kelompok</th>
+                                    <th>Lokasi</th>
+                                    <th>Kontak</th>
+                                    <th class="text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-warga"></tbody>
+                        </table>
+                    </div>
+                    <div
+                        id="empty-warga"
+                        class="card-paper empty-state"
+                        style="display: none"
+                    >
+                        <i
+                            data-lucide="users"
+                            class="w-12 h-12 text-terracotta/20 mb-4"
+                        ></i>
+                        <h3
+                            class="font-serif text-xl font-bold text-moss-dark mb-2"
+                        >
+                            Belum ada warga terdaftar
+                        </h3>
+                        <p class="text-sm text-soil-light mb-5 max-w-xs">
+                            Daftarkan fasilitator dan anggota komunitas.
+                        </p>
+                        <button
+                            onclick="openAdd('warga')"
+                            class="bg-terracotta text-cream px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+                        >
+                            Tambah Warga Pertama
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── KATALOG HIJAU ───────────────────────────────── -->
+                <div id="tab-katalog" class="tab-content">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2
+                                class="font-serif text-2xl font-bold text-moss-dark"
+                            >
+                                Katalog Hijau
+                            </h2>
+                            <p class="text-sm text-soil-light mt-0.5 font-mono">
+                                Kelola produk dan hasil panen Majelis Sayur
+                            </p>
+                        </div>
+                        <button
+                            onclick="openAdd('katalog')"
+                            class="flex items-center gap-2 bg-moss text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-moss-dark transition-colors shadow-sm"
+                        >
+                            <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+                            Produk
+                        </button>
+                    </div>
+                    <div class="flex gap-3 mb-4 flex-wrap">
+                        <div
+                            class="card-paper p-3 flex items-center gap-3 flex-1 min-w-48"
+                        >
+                            <i
+                                data-lucide="search"
+                                class="w-4 h-4 text-moss-light flex-shrink-0"
+                            ></i
+                            ><input
+                                type="text"
+                                id="srch-katalog"
+                                oninput="renderMod('katalog')"
+                                placeholder="Cari produk atau petani…"
+                                class="bg-transparent border-none outline-none text-sm w-full placeholder:text-moss-light/60"
+                            />
+                        </div>
+                        <select
+                            id="filt-katalog"
+                            onchange="renderMod('katalog')"
+                            class="card-paper px-3 py-2 text-sm border-none outline-none bg-cream-paper rounded-lg cursor-pointer font-mono"
+                        >
+                            <option value="">Semua Kategori</option>
+                            <option value="sayur-sayuran">Sayur Sayuran</option>
+                            <option value="buah-buahan">Buah Buahan</option>
+                            <option value="toga">TOGA</option>
+                            <option value="tanaman-hias">Tanaman Hias</option>
+                            <option value="olahan">Produk Olahan</option>
+                        </select>
+                    </div>
+                    <div class="card-paper overflow-hidden" id="wrap-katalog">
+                        <table class="dtable">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Kategori</th>
+                                    <th>Petani</th>
+                                    <th>Musim Panen</th>
+                                    <th>Metode</th>
+                                    <th class="text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-katalog"></tbody>
+                        </table>
+                    </div>
+                    <div
+                        id="empty-katalog"
+                        class="card-paper empty-state"
+                        style="display: none"
+                    >
+                        <i
+                            data-lucide="leaf"
+                            class="w-12 h-12 text-moss/20 mb-4"
+                        ></i>
+                        <h3
+                            class="font-serif text-xl font-bold text-moss-dark mb-2"
+                        >
+                            Katalog masih kosong
+                        </h3>
+                        <p class="text-sm text-soil-light mb-5 max-w-xs">
+                            Tambahkan produk dan hasil panen dari kebun Majelis
+                            Sayur.
+                        </p>
+                        <button
+                            onclick="openAdd('katalog')"
+                            class="bg-moss text-cream px-5 py-2 rounded-lg text-sm font-medium hover:bg-moss-dark transition-colors"
+                        >
+                            Tambah Produk Pertama
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── AGENDA ACARA ────────────────────────────────── -->
+                <div id="tab-agenda" class="tab-content">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2
+                                class="font-serif text-2xl font-bold text-moss-dark"
+                            >
+                                Agenda Acara
+                            </h2>
+                            <p class="text-sm text-soil-light mt-0.5 font-mono">
+                                Kelola acara mendatang dan dokumentasi lampau
+                            </p>
+                        </div>
+                        <button
+                            onclick="openAdd('agenda')"
+                            class="flex items-center gap-2 bg-soil text-cream px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm"
+                        >
+                            <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                            Tambah Acara
+                        </button>
+                    </div>
+                    <div
+                        class="inline-flex gap-1 mb-5 bg-cream-paper border border-parchment p-1 rounded-xl shadow-sm"
+                    >
+                        <button
+                            id="ag-btn-m"
+                            onclick="switchAgTab('mendatang')"
+                            class="px-4 py-1.5 rounded-lg text-sm font-medium bg-moss text-cream transition-all"
+                        >
+                            📅 Mendatang
+                        </button>
+                        <button
+                            id="ag-btn-l"
+                            onclick="switchAgTab('lampau')"
+                            class="px-4 py-1.5 rounded-lg text-sm font-medium text-ink-light transition-all"
+                        >
+                            📁 Lampau
+                        </button>
+                    </div>
+                    <div id="ag-mendatang">
+                        <div class="card-paper overflow-hidden" id="wrap-ag-m">
+                            <table class="dtable">
+                                <thead>
+                                    <tr>
+                                        <th>Judul Acara</th>
+                                        <th>Tanggal</th>
+                                        <th>Lokasi</th>
+                                        <th>Tag</th>
+                                        <th>Kolaborator</th>
+                                        <th class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-ag-m"></tbody>
+                            </table>
+                        </div>
+                        <div
+                            id="empty-ag-m"
+                            class="card-paper empty-state"
+                            style="display: none"
+                        >
+                            <i
+                                data-lucide="calendar-off"
+                                class="w-12 h-12 text-soil/20 mb-4"
+                            ></i>
+                            <h3
+                                class="font-serif text-xl font-bold text-moss-dark mb-2"
+                            >
+                                Belum ada agenda mendatang
+                            </h3>
+                            <p class="text-sm text-soil-light mb-5 max-w-xs">
+                                Tambahkan workshop, diskusi, atau kunjungan
+                                kebun.
+                            </p>
+                            <button
+                                onclick="openAdd('agenda')"
+                                class="bg-soil text-cream px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+                            >
+                                Tambah Acara Pertama
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ag-lampau" class="hidden">
+                        <div class="card-paper overflow-hidden" id="wrap-ag-l">
+                            <table class="dtable">
+                                <thead>
+                                    <tr>
+                                        <th>Judul Acara</th>
+                                        <th>Tanggal</th>
+                                        <th>Lokasi</th>
+                                        <th>Tag</th>
+                                        <th>Rekap</th>
+                                        <th class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-ag-l"></tbody>
+                            </table>
+                        </div>
+                        <div
+                            id="empty-ag-l"
+                            class="card-paper empty-state"
+                            style="display: none"
+                        >
+                            <i
+                                data-lucide="folder-open"
+                                class="w-12 h-12 text-olive/20 mb-4"
+                            ></i>
+                            <h3
+                                class="font-serif text-xl font-bold text-moss-dark mb-2"
+                            >
+                                Belum ada arsip acara lampau
+                            </h3>
+                            <p class="text-sm text-soil-light mb-5 max-w-xs">
+                                Dokumentasikan acara yang telah berlangsung.
+                            </p>
+                            <button
+                                onclick="openAdd('agenda')"
+                                class="bg-olive text-cream px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+                            >
+                                Tambah Arsip Acara
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── JURNAL & ARSIP ──────────────────────────────── -->
+                <div id="tab-arsip" class="tab-content">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2
+                                class="font-serif text-2xl font-bold text-moss-dark"
+                            >
+                                Jurnal &amp; Arsip
+                            </h2>
+                            <p class="text-sm text-soil-light mt-0.5 font-mono">
+                                Dokumentasi hasil panen, modul, dan arsip
+                                komunitas
+                            </p>
+                        </div>
+                        <button
+                            onclick="openAdd('arsip')"
+                            class="flex items-center gap-2 bg-olive text-cream px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm"
+                        >
+                            <i data-lucide="file-plus" class="w-4 h-4"></i>
+                            Tambah Dokumen
+                        </button>
+                    </div>
+                    <div class="flex gap-3 mb-4 flex-wrap">
+                        <div
+                            class="card-paper p-3 flex items-center gap-3 flex-1 min-w-48"
+                        >
+                            <i
+                                data-lucide="search"
+                                class="w-4 h-4 text-moss-light flex-shrink-0"
+                            ></i
+                            ><input
+                                type="text"
+                                id="srch-arsip"
+                                oninput="renderMod('arsip')"
+                                placeholder="Cari judul, penulis, tag…"
+                                class="bg-transparent border-none outline-none text-sm w-full placeholder:text-moss-light/60"
+                            />
+                        </div>
+                        <select
+                            id="filt-arsip"
+                            onchange="renderMod('arsip')"
+                            class="card-paper px-3 py-2 text-sm border-none outline-none bg-cream-paper rounded-lg cursor-pointer font-mono"
+                        >
+                            <option value="">Semua Jenis</option>
+                            <option>Jurnal Panen</option>
+                            <option>Modul Belajar</option>
+                            <option>Manifesto</option>
+                            <option>Laporan</option>
+                            <option>Dokumentasi Foto</option>
+                            <option>Riset</option>
+                            <option>Catatan Lapangan</option>
+                        </select>
+                    </div>
+                    <div class="card-paper overflow-hidden" id="wrap-arsip">
+                        <table class="dtable">
+                            <thead>
+                                <tr>
+                                    <th>Judul</th>
+                                    <th>Jenis</th>
+                                    <th>Penulis</th>
+                                    <th>Tanggal</th>
+                                    <th>Tags</th>
+                                    <th class="text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-arsip"></tbody>
+                        </table>
+                    </div>
+                    <div
+                        id="empty-arsip"
+                        class="card-paper empty-state"
+                        style="display: none"
+                    >
+                        <i
+                            data-lucide="file-text"
+                            class="w-12 h-12 text-olive/20 mb-4"
+                        ></i>
+                        <h3
+                            class="font-serif text-xl font-bold text-moss-dark mb-2"
+                        >
+                            Arsip masih kosong
+                        </h3>
+                        <p class="text-sm text-soil-light mb-5 max-w-xs">
+                            Dokumentasikan perjalanan Majelis Sayur.
+                        </p>
+                        <button
+                            onclick="openAdd('arsip')"
+                            class="bg-olive text-cream px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+                        >
+                            Tambah Dokumen Pertama
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── PENGATURAN ──────────────────────────────────── -->
+                <div id="tab-pengaturan" class="tab-content">
+                    <div class="mb-6">
+                        <h2
+                            class="font-serif text-2xl font-bold text-moss-dark"
+                        >
+                            Pengaturan
+                        </h2>
+                        <p class="text-sm text-soil-light mt-0.5 font-mono">
+                            Konfigurasi profil admin dan pengelolaan data
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div class="card-paper p-6">
+                            <h3
+                                class="font-serif text-lg font-bold text-moss-dark mb-1"
+                            >
+                                Profil Admin
+                            </h3>
+                            <p class="text-xs font-mono text-soil-light mb-5">
+                                Informasi admin yang tampil di dashboard
+                            </p>
+                            <form
+                                onsubmit="saveSettings(event)"
+                                class="space-y-4"
+                            >
+                                <div class="form-field">
+                                    <label>Nama Admin</label
+                                    ><input
+                                        type="text"
+                                        id="set-nama"
+                                        placeholder="Nama lengkap admin"
+                                    />
+                                </div>
+                                <div class="form-field">
+                                    <label>Email</label
+                                    ><input
+                                        type="email"
+                                        id="set-email"
+                                        placeholder="admin@majelissayur.id"
+                                    />
+                                </div>
+                                <hr class="border-parchment" />
+                                <div class="form-field">
+                                    <label>Nama Komunitas</label
+                                    ><input
+                                        type="text"
+                                        id="set-komunitas"
+                                        placeholder="Majelis Sayur"
+                                    />
+                                </div>
+                                <div class="form-field">
+                                    <label>Tagline</label
+                                    ><input
+                                        type="text"
+                                        id="set-tagline"
+                                        placeholder="Ekosistem Urban Farming Jagakarsa"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    class="w-full bg-moss text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-moss-dark transition-colors shadow-sm"
+                                >
+                                    Simpan Pengaturan
+                                </button>
+                            </form>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="card-paper p-6">
+                                <h3
+                                    class="font-serif text-lg font-bold text-moss-dark mb-1"
+                                >
+                                    Export Data
+                                </h3>
+                                <p
+                                    class="text-xs font-mono text-soil-light mb-4"
+                                >
+                                    Unduh semua data admin sebagai file JSON
+                                </p>
+                                <button
+                                    onclick="exportData()"
+                                    class="w-full flex items-center justify-center gap-2 border border-moss text-moss py-2.5 rounded-lg text-sm font-medium hover:bg-moss/5 transition-colors"
+                                >
+                                    <i
+                                        data-lucide="download"
+                                        class="w-4 h-4"
+                                    ></i>
+                                    Export JSON
+                                </button>
+                            </div>
+                            <div class="card-paper p-6">
+                                <h3
+                                    class="font-serif text-lg font-bold text-moss-dark mb-1"
+                                >
+                                    Import Data
+                                </h3>
+                                <p
+                                    class="text-xs font-mono text-soil-light mb-4"
+                                >
+                                    Upload file JSON yang pernah diexport
+                                </p>
+                                <label
+                                    class="w-full flex items-center justify-center gap-2 border border-parchment bg-cream-dark text-ink py-2.5 rounded-lg text-sm font-medium hover:bg-parchment transition-colors cursor-pointer"
+                                    ><i
+                                        data-lucide="upload"
+                                        class="w-4 h-4"
+                                    ></i>
+                                    Upload JSON<input
+                                        type="file"
+                                        accept=".json"
+                                        onchange="importData(event)"
+                                        class="hidden"
+                                /></label>
+                            </div>
+                            <div
+                                class="card-paper p-6 border-terracotta/30"
+                                style="border-color: rgba(196, 113, 74, 0.3)"
+                            >
+                                <h3
+                                    class="font-serif text-lg font-bold text-terracotta mb-1"
+                                >
+                                    Reset Data
+                                </h3>
+                                <p
+                                    class="text-xs font-mono text-soil-light mb-4"
+                                >
+                                    Hapus semua data. Tindakan ini tidak dapat
+                                    dibatalkan.
+                                </p>
+                                <button
+                                    onclick="resetData()"
+                                    class="w-full flex items-center justify-center gap-2 bg-terracotta/10 text-terracotta border border-terracotta/20 py-2.5 rounded-lg text-sm font-medium hover:bg-terracotta hover:text-cream transition-all"
+                                >
+                                    <i
+                                        data-lucide="trash-2"
+                                        class="w-4 h-4"
+                                    ></i>
+                                    Reset Semua Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /content -->
+        </main>
+
+        <!-- ── Modal ────────────────────────────────────────────────── -->
+        <div
+            id="modal-overlay"
+            class="fixed inset-0 bg-ink/60 z-50 hidden items-center justify-center p-4"
+            style="backdrop-filter: blur(4px)"
+            onclick="if (event.target === this) closeModal();"
+        >
+            <div
+                class="bg-cream-paper rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col"
+                onclick="event.stopPropagation()"
+            >
+                <div
+                    class="flex items-start justify-between px-6 py-4 border-b border-parchment flex-shrink-0"
+                >
+                    <div>
+                        <h3
+                            id="modal-title"
+                            class="font-serif text-xl font-bold text-moss-dark"
+                        ></h3>
+                        <p
+                            id="modal-sub"
+                            class="text-xs font-mono text-soil-light mt-0.5"
+                        ></p>
+                    </div>
+                    <button
+                        onclick="closeModal()"
+                        class="p-1.5 hover:bg-cream-dark rounded-lg transition-colors ml-4 flex-shrink-0"
+                    >
+                        <i data-lucide="x" class="w-5 h-5 text-ink-light"></i>
+                    </button>
+                </div>
+                <div
+                    id="modal-body"
+                    class="px-6 py-5 overflow-y-auto flex-1"
+                ></div>
+                <div
+                    class="flex items-center justify-end gap-3 px-6 py-4 border-t border-parchment flex-shrink-0"
+                >
+                    <button
+                        onclick="closeModal()"
+                        class="px-4 py-2 text-sm text-soil-light hover:text-ink font-medium"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        id="modal-save"
+                        class="px-6 py-2 bg-moss text-cream text-sm font-medium rounded-lg hover:bg-moss-dark transition-colors shadow-sm"
+                    >
+                        Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Delete Confirm ────────────────────────────────────────── -->
+        <div
+            id="del-overlay"
+            class="fixed inset-0 bg-ink/60 z-50 hidden items-center justify-center p-4"
+            style="backdrop-filter: blur(4px)"
+        >
+            <div
+                class="bg-cream-paper rounded-xl shadow-2xl w-full max-w-sm p-6"
+            >
+                <div class="flex items-start gap-4 mb-6">
+                    <div
+                        class="w-11 h-11 rounded-full bg-terracotta/10 flex items-center justify-center flex-shrink-0"
+                    >
+                        <i
+                            data-lucide="trash-2"
+                            class="w-5 h-5 text-terracotta"
+                        ></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-moss-dark">
+                            Hapus Data?
+                        </h3>
+                        <p
+                            class="text-sm text-soil-light mt-1 leading-relaxed"
+                            id="del-msg"
+                        >
+                            Data ini akan dihapus permanen.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button
+                        onclick="closeDel()"
+                        class="px-4 py-2 text-sm text-soil-light hover:text-ink font-medium"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        onclick="execDel()"
+                        class="px-5 py-2 bg-terracotta text-cream text-sm font-medium rounded-lg hover:opacity-90 shadow-sm"
+                    >
+                        Hapus Permanen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Toast ─────────────────────────────────────────────────── -->
+        <div
+            id="toast-box"
+            class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"
+        ></div>
+
+        <script>
+            // ══ DB ══════════════════════════════════════════════════════════
+            const DB = {
+                p: "ms_",
+                get(k) {
+                    const val = localStorage.getItem(this.p + k);
+                    if (val) return JSON.parse(val);
+                    if (k === "katalog") {
+                        const initialProducts = [
+                            {
+                                id: 1,
+                                name: "Alpukat Cipedak",
+                                category: "buah-buahan",
+                                farmer: "Pak Hendra",
+                                location: "Pojok Aseli, Jagakarsa",
+                                harvestSeason: "Maret – Mei",
+                                ecologicalNote:
+                                    "Varietas alpukat asli Cipedak yang hampir punah. Rasa lebih kaya dari varietas hibrida modern. Pohon induk berusia 40+ tahun.",
+                                cultivationMethod: "Organik tradisional",
+                                image: null,
+                            },
+                            {
+                                id: 2,
+                                name: "Melon Kirin",
+                                category: "buah-buahan",
+                                farmer: "Pak Hendra",
+                                location: "Pojok Aseli, Jagakarsa",
+                                harvestSeason: "April – Juni",
+                                ecologicalNote:
+                                    "Melon lokal dengan kulit tipis dan daging manis. Dibudidayakan tanpa pestisida kimia sejak generasi pertama.",
+                                cultivationMethod: "Organik tradisional",
+                                image: null,
+                            },
+                            {
+                                id: 3,
+                                name: "Selada Hidroponik",
+                                category: "sayur-sayuran",
+                                farmer: "Young Sayur",
+                                location: "Young Sayur, Jagakarsa",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Ditanam tanpa tanah dengan sistem NFT. Konsumsi air 90% lebih hemat dari pertanian konvensional.",
+                                cultivationMethod: "Hidroponik NFT",
+                                image: null,
+                            },
+                            {
+                                id: 4,
+                                name: "Pakcoy Baby",
+                                category: "sayur-sayuran",
+                                farmer: "Young Sayur",
+                                location: "Young Sayur, Jagakarsa",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Pakcoy muda dipanen pada hari ke-25. Tekstur lembut, rasa ringan. Cocok untuk konsumsi mentah.",
+                                cultivationMethod: "Hidroponik DFT",
+                                image: null,
+                            },
+                            {
+                                id: 5,
+                                name: "Kangkung Air",
+                                category: "sayur-sayuran",
+                                farmer: "Babe Zaenal",
+                                location: "Kebun Ciliwung, Jagakarsa",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Tumbuh alami di tepi Ciliwung. Dipanen dengan metode rotasi agar ekosistem sungai tetap terjaga.",
+                                cultivationMethod: "Budidaya tepi sungai",
+                                image: null,
+                            },
+                            {
+                                id: 6,
+                                name: "Genjer",
+                                category: "sayur-sayuran",
+                                farmer: "Babe Zaenal",
+                                location: "Kebun Ciliwung, Jagakarsa",
+                                harvestSeason: "Musim hujan",
+                                ecologicalNote:
+                                    "Tanaman air yang kaya zat besi. Dulu makanan rakyat, kini hampir terlupakan. Babe Zaenal menjaga agar genjer tidak punah dari Ciliwung.",
+                                cultivationMethod: "Budidaya tepi sungai",
+                                image: null,
+                            },
+                            {
+                                id: 7,
+                                name: "Cabai Rawit Lokal",
+                                category: "sayur-sayuran",
+                                farmer: "Mbak Lily",
+                                location: "Kebun Emeng, Lenteng Agung",
+                                harvestSeason: "Agustus – Oktober",
+                                ecologicalNote:
+                                    "Varietas cabai rawit yang diwariskan dari kebun Pak Emeng. Lebih pedas dari varietas komersial, lebih tahan hama.",
+                                cultivationMethod: "Organik warisan",
+                                image: null,
+                            },
+                            {
+                                id: 8,
+                                name: "Bayam Merah",
+                                category: "sayur-sayuran",
+                                farmer: "Ibu Maisa",
+                                location: "Kebun Maisa, Ciganjur",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Kaya zat besi dan antioksidan. Ditanam di pot-pot bekas yang dicat ulang — bukti bahwa keterbatasan bisa menjadi estetika.",
+                                cultivationMethod: "Pot urban",
+                                image: null,
+                            },
+                            {
+                                id: 9,
+                                name: "Temulawak",
+                                category: "toga",
+                                farmer: "Tim Sekolah Tani Kota",
+                                location: "Sekolah Tani Kota, Cipedak",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Rimpang obat tradisional yang tumbuh di bawah naungan pohon. Digunakan dalam program kesehatan komunitas.",
+                                cultivationMethod: "Agroforestri",
+                                image: null,
+                            },
+                            {
+                                id: 10,
+                                name: "Jahe Merah",
+                                category: "toga",
+                                farmer: "Tim Sekolah Tani Kota",
+                                location: "Sekolah Tani Kota, Cipedak",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Jahe merah dengan kandungan gingerol tinggi. Ditanam dalam sistem tumpang sari dengan tanaman sayuran.",
+                                cultivationMethod: "Tumpang sari",
+                                image: null,
+                            },
+                            {
+                                id: 11,
+                                name: "Microgreens Campuran",
+                                category: "sayur-sayuran",
+                                farmer: "Young Sayur",
+                                location: "Young Sayur, Jagakarsa",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Campuran brokoli, lobak, dan kacang-kacangan muda. Dipanen pada hari ke-7 hingga ke-14 untuk kandungan nutrisi maksimal.",
+                                cultivationMethod: "Hidroponik media",
+                                image: null,
+                            },
+                            {
+                                id: 12,
+                                name: "Singkong Lokal",
+                                category: "sayur-sayuran",
+                                farmer: "Mbak Lily",
+                                location: "Kebun Emeng, Lenteng Agung",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Varietas singkong yang ditanam Pak Emeng sejak 1990-an. Daun dan umbinya sama-sama dikonsumsi — tidak ada yang terbuang.",
+                                cultivationMethod: "Organik warisan",
+                                image: null,
+                            },
+                            {
+                                id: 13,
+                                name: "Lidah Mertua (Sansevieria)",
+                                category: "tanaman-hias",
+                                farmer: "Mbak Lily",
+                                location: "Kebun Emeng, Lenteng Agung",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Tanaman hias penyerap polutan udara kota yang tangguh. Cocok untuk diletakkan di dalam maupun luar ruangan.",
+                                cultivationMethod: "Organik tradisional",
+                                image: null,
+                            },
+                            {
+                                id: 14,
+                                name: "Sirih Gading (Devil's Ivy)",
+                                category: "tanaman-hias",
+                                farmer: "Ibu Maisa",
+                                location: "Kebun Maisa, Ciganjur",
+                                harvestSeason: "Sepanjang tahun",
+                                ecologicalNote:
+                                    "Tanaman hias merambat yang mudah beradaptasi di berbagai kondisi pencahayaan. Membantu menjaga kesegaran udara.",
+                                cultivationMethod: "Pot urban",
+                                image: null,
+                            },
+                        ];
+                        localStorage.setItem(
+                            this.p + k,
+                            JSON.stringify(initialProducts),
+                        );
+                        return initialProducts;
+                    }
+                    if (k === "agenda_m") {
+                        const initialUpcoming = [
+                            {
+                                id: 1,
+                                title: "Kunjungan Kebun: Kebun Emeng",
+                                date: "14 Juni 2026",
+                                location: "Lenteng Agung, Jagakarsa",
+                                desc: "Kunjungi Kebun Emeng bersama Mbak Lily. Dengarkan cerita tentang ayahnya, tentang tanah yang diwariskan, dan tentang cara menanam yang tidak pernah berubah.",
+                                tag: "Kunjungan Lapangan",
+                                category: "tour",
+                                featured: true,
+                                collaborators: "Majelis Sayur, Gudskul",
+                                image: null,
+                            },
+                            {
+                                id: 2,
+                                title: "Workshop: Agroekologi untuk Pemula",
+                                date: "21 Juni 2026",
+                                location: "Gudskul Ekosistem, Jagakarsa",
+                                desc: "Pengantar agroekologi sebagai cara pandang — bukan sekadar teknik bertani. Untuk siapa saja yang ingin memahami hubungan antara tanah, tanaman, dan manusia.",
+                                tag: "Workshop",
+                                category: "education",
+                                featured: false,
+                                collaborators:
+                                    "Majelis Sayur, Sekolah Tani Kota",
+                                image: null,
+                            },
+                            {
+                                id: 3,
+                                title: "Diskusi: Kedaulatan Pangan Kota",
+                                date: "5 Juli 2026",
+                                location: "Gudskul Ekosistem, Jagakarsa",
+                                desc: "Forum terbuka tentang peran komunitas urban dalam membangun sistem pangan yang mandiri. Menghadirkan petani, aktivis, dan peneliti.",
+                                tag: "Diskusi",
+                                category: "forum",
+                                featured: false,
+                                collaborators: "Majelis Sayur, ruangrupa, BRIN",
+                                image: null,
+                            },
+                            {
+                                id: 4,
+                                title: "Panen Bersama & Bazar Sayur",
+                                date: "19 Juli 2026",
+                                location: "Taman Jagakarsa",
+                                desc: "Rayakan hasil panen bersama komunitas. Tukar bibit, nikmati bazar produk lokal, dan dengarkan cerita dari para petani.",
+                                tag: "Event Komunitas",
+                                category: "community",
+                                featured: false,
+                                collaborators: "Majelis Sayur, Warga Jagakarsa",
+                                image: null,
+                            },
+                            {
+                                id: 5,
+                                title: "Laboratorium Benih: Pelestarian Varietas Lokal",
+                                date: "2 Agustus 2026",
+                                location: "Pojok Aseli, Jagakarsa",
+                                desc: "Belajar cara menyimpan, merawat, dan menukar benih varietas lokal yang hampir punah. Bersama Pak Hendra dari Pojok Aseli.",
+                                tag: "Workshop",
+                                category: "education",
+                                featured: false,
+                                collaborators: "Majelis Sayur, Pojok Aseli",
+                                image: null,
+                            },
+                        ];
+                        localStorage.setItem(
+                            this.p + k,
+                            JSON.stringify(initialUpcoming),
+                        );
+                        return initialUpcoming;
+                    }
+                    if (k === "agenda_l") {
+                        const initialPast = [
+                            {
+                                id: 101,
+                                title: "Residensi: Seni & Pertanian Urban",
+                                date: "Maret 2026",
+                                location: "Gudskul Ekosistem",
+                                desc: "Dua minggu residensi bersama seniman dan petani. Menghasilkan karya yang merespons kondisi pertanian urban di Jagakarsa.",
+                                tag: "Residensi",
+                                category: "community",
+                                collaborators:
+                                    "Gudskul, ruangrupa, Majelis Sayur",
+                                recap: "12 seniman, 8 petani, 1 pameran, dan ratusan benih yang dibagikan.",
+                                image: null,
+                            },
+                            {
+                                id: 102,
+                                title: "Tur Kebun: Menyusuri Ciliwung",
+                                date: "Februari 2026",
+                                location: "Tepi Ciliwung, Jagakarsa",
+                                desc: "Perjalanan menyusuri tepi Ciliwung bersama Babe Zaenal. Melihat langsung bagaimana ekosistem sungai dijaga melalui pertanian.",
+                                tag: "Tur",
+                                category: "tour",
+                                collaborators: "Majelis Sayur, Kebun Ciliwung",
+                                recap: "30 peserta, 5 km perjalanan, dan satu pemahaman baru tentang kota.",
+                                image: null,
+                            },
+                            {
+                                id: 103,
+                                title: "Peluncuran: Sekolah Tani Kota Angkatan III",
+                                date: "Januari 2026",
+                                location: "Sekolah Tani Kota, Cipedak",
+                                desc: "Pembukaan angkatan ketiga Sekolah Tani Kota dengan 40 peserta dari berbagai latar belakang.",
+                                tag: "Peluncuran",
+                                category: "education",
+                                collaborators:
+                                    "Sekolah Tani Kota, Majelis Sayur",
+                                recap: "40 peserta baru, 6 modul agroekologi, dan satu kebun yang siap ditanami.",
+                                image: null,
+                            },
+                            {
+                                id: 104,
+                                title: "Pameran: Arsip Kebun Jagakarsa",
+                                date: "November 2025",
+                                location: "Gudskul Ekosistem",
+                                desc: "Pameran dokumentasi visual kebun-kebun di Jagakarsa. Foto, peta, dan cerita dari para petani.",
+                                tag: "Pameran",
+                                category: "community",
+                                collaborators:
+                                    "Gudskul, Majelis Sayur, ruangrupa",
+                                recap: "200+ pengunjung, 50 foto dokumenter, dan satu arsip yang terus tumbuh.",
+                                image: null,
+                            },
+                        ];
+                        localStorage.setItem(
+                            this.p + k,
+                            JSON.stringify(initialPast),
+                        );
+                        return initialPast;
+                    }
+                    if (k === "arsip") {
+                        const initialArsip = [
+                            {
+                                id: 101,
+                                judul: "Residensi: Seni & Pertanian Urban",
+                                jenis: "Kegiatan",
+                                penulis: "Gudskul, ruangrupa, Majelis Sayur",
+                                tanggal: "2026-03-15",
+                                deskripsi:
+                                    "Dua minggu residensi bersama seniman dan petani. Menghasilkan karya yang merespons kondisi pertanian urban di Jagakarsa. 12 seniman, 8 petani, 1 pameran, dan ratusan benih yang dibagikan.",
+                                tags: "residensi, urban-farming, seni",
+                                image: null,
+                            },
+                            {
+                                id: 102,
+                                judul: "Tur Kebun: Menyusuri Ciliwung",
+                                jenis: "Kegiatan",
+                                penulis: "Majelis Sayur, Kebun Ciliwung",
+                                tanggal: "2026-02-10",
+                                deskripsi:
+                                    "Perjalanan menyusuri tepi Ciliwung bersama Babe Zaenal. Melihat langsung bagaimana ekosistem sungai dijaga melalui pertanian. 30 peserta, 5 km perjalanan, dan satu pemahaman baru tentang kota.",
+                                tags: "tur, ciliwung, konservasi",
+                                image: null,
+                            },
+                            {
+                                id: 103,
+                                judul: "Peluncuran: Sekolah Tani Kota Angkatan III",
+                                jenis: "Kegiatan",
+                                penulis: "Sekolah Tani Kota, Majelis Sayur",
+                                tanggal: "2026-01-20",
+                                deskripsi:
+                                    "Pembukaan angkatan ketiga Sekolah Tani Kota dengan 40 peserta dari berbagai latar belakang. 40 peserta baru, 6 modul agroekologi, dan satu kebun yang siap ditanami.",
+                                tags: "sekolah-tani, edukasi, agroekologi",
+                                image: null,
+                            },
+                            {
+                                id: 104,
+                                judul: "Pameran: Arsip Kebun Jagakarsa",
+                                jenis: "Kegiatan",
+                                penulis: "Gudskul, Majelis Sayur, ruangrupa",
+                                tanggal: "2025-11-05",
+                                deskripsi:
+                                    "Pameran dokumentasi visual kebun-kebun di Jagakarsa. Foto, peta, dan cerita dari para petani. 200+ pengunjung, 50 foto dokumenter, dan satu arsip yang terus tumbuh.",
+                                tags: "pameran, arsip, dokumentasi",
+                                image: null,
+                            },
+                            {
+                                id: 5,
+                                judul: "Panduan Lapangan: Kompos Mandiri",
+                                jenis: "Modul Belajar",
+                                penulis: "Fasilitator Sekolah Tani Kota",
+                                tanggal: "2026-04-01",
+                                deskripsi:
+                                    "Panduan praktis pembuatan kompos skala rumah tangga untuk menyiasati lahan sempit di perkotaan.",
+                                tags: "kompos, tutorial, belajar",
+                                image: null,
+                            },
+                        ];
+                        localStorage.setItem(
+                            this.p + k,
+                            JSON.stringify(initialArsip),
+                        );
+                        return initialArsip;
+                    }
+                    return [];
+                },
+                set(k, d) {
+                    localStorage.setItem(this.p + k, JSON.stringify(d));
+                },
+                geto(k) {
+                    return JSON.parse(localStorage.getItem(this.p + k) || "{}");
+                },
+                seto(k, d) {
+                    localStorage.setItem(this.p + k, JSON.stringify(d));
+                },
+                id(arr) {
+                    return arr.length
+                        ? Math.max(...arr.map((r) => r.id || 0)) + 1
+                        : 1;
+                },
+            };
+
+            // ══ TOAST ═══════════════════════════════════════════════════════
+            function toast(msg, type = "success") {
+                const c = document.getElementById("toast-box");
+                const el = document.createElement("div");
+                el.className = "toast-item";
+                el.style.cssText = `background:${type === "success" ? "#4A5E3A" : "#C4714A"};color:#F9F5EE;opacity:0;transform:translateX(16px)`;
+                const icon =
+                    type === "success"
+                        ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+                        : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+                el.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">${icon}</svg><span>${msg}</span>`;
+                c.appendChild(el);
+                requestAnimationFrame(() => {
+                    el.style.opacity = "1";
+                    el.style.transform = "translateX(0)";
+                    el.style.transition = "all .3s ease";
+                });
+                setTimeout(() => {
+                    el.style.opacity = "0";
+                    el.style.transform = "translateX(16px)";
+                    setTimeout(() => el.remove(), 350);
+                }, 3500);
+            }
+
+            // ══ MODAL ═══════════════════════════════════════════════════════
+            let _saveFn = null;
+            function openModal(cfg) {
+                const {
+                    title,
+                    sub = "",
+                    fields,
+                    data = {},
+                    onSave,
+                    saveLabel = "Simpan",
+                    saveBg = "bg-moss hover:bg-moss-dark",
+                } = cfg;
+                document.getElementById("modal-title").textContent = title;
+                document.getElementById("modal-sub").textContent = sub;
+                const body = document.getElementById("modal-body");
+                body.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">${fields.map((f) => fld(f, data[f.key])).join("")}</div>`;
+                const btn = document.getElementById("modal-save");
+                btn.textContent = saveLabel;
+                btn.className = `px-6 py-2 text-cream text-sm font-medium rounded-lg transition-colors shadow-sm ${saveBg}`;
+                _saveFn = () => {
+                    const d = collectForm(fields);
+                    if (d) onSave(d);
+                };
+                btn.onclick = _saveFn;
+                const o = document.getElementById("modal-overlay");
+                o.classList.remove("hidden");
+                o.classList.add("flex");
+                setTimeout(() => {
+                    const fi = body.querySelector("input,select,textarea");
+                    if (fi) fi.focus();
+                }, 80);
+            }
+            function closeModal() {
+                const o = document.getElementById("modal-overlay");
+                o.classList.add("hidden");
+                o.classList.remove("flex");
+                _saveFn = null;
+            }
+
+            function handleImageUpload(input, targetId) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64 = e.target.result;
+                    document.getElementById(targetId).value = base64;
+                    const preview = document.getElementById(
+                        targetId + "_preview",
+                    );
+                    preview.innerHTML = `<img src="${base64}" class="w-full h-full object-cover rounded">`;
+                    toast("Foto berhasil diunggah", "success");
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function clearImagePreview(targetId) {
+                document.getElementById(targetId).value = "";
+                const preview = document.getElementById(targetId + "_preview");
+                preview.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-moss-light/40"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+            }
+
+            function fld(f, val) {
+                const cs = f.col === 2 ? "col-span-2" : "";
+                const lbl =
+                    f.type !== "checkbox"
+                        ? `<label for="f_${f.key}">${esc(f.label)}${f.required ? ' <span style="color:#C4714A">*</span>' : ""}</label>`
+                        : "";
+                let inp = "";
+                if (["text", "number", "email", "date"].includes(f.type)) {
+                    inp = `<input type="${f.type}" id="f_${f.key}" name="${f.key}" value="${esc(val ?? "")}" placeholder="${esc(f.placeholder ?? "")}" ${f.step ? `step="${f.step}"` : ""}  ${f.required ? "required" : ""} autocomplete="off">`;
+                } else if (f.type === "textarea") {
+                    inp = `<textarea id="f_${f.key}" name="${f.key}" rows="${f.rows || 3}" placeholder="${esc(f.placeholder ?? "")}" ${f.required ? "required" : ""}>${esc(val ?? "")}</textarea>`;
+                } else if (f.type === "select") {
+                    const opts = (f.options || [])
+                        .map(
+                            (o) =>
+                                `<option value="${esc(o.value)}" ${val === o.value ? "selected" : ""}>${esc(o.label)}</option>`,
+                        )
+                        .join("");
+                    inp = `<select id="f_${f.key}" name="${f.key}" ${f.required ? "required" : ""}><option value="">— Pilih ${esc(f.label)} —</option>${opts}</select>`;
+                } else if (f.type === "checkbox") {
+                    return `<div class="${cs} flex items-center gap-3 py-2"><input type="checkbox" id="f_${f.key}" ${val ? "checked" : ""} style="width:16px;height:16px;accent-color:#4A5E3A;cursor:pointer;flex-shrink:0"><label for="f_${f.key}" style="font-size:.875rem;color:#1C1C18;cursor:pointer;margin:0;text-transform:none;letter-spacing:0">${esc(f.checkLabel || f.label)}</label></div>`;
+                } else if (f.type === "image") {
+                    inp = `
+        <div class="flex items-center gap-4 py-1.5 px-3 border border-parchment rounded-lg bg-cream/30">
+            <input type="file" id="f_${f.key}_file" accept="image/*" class="hidden" onchange="handleImageUpload(this, 'f_${f.key}')">
+            <button type="button" onclick="document.getElementById('f_${f.key}_file').click()" class="px-3.5 py-2 bg-moss text-cream text-xs font-mono rounded hover:bg-moss-dark transition-colors shadow-sm">Pilih Foto</button>
+            <input type="hidden" id="f_${f.key}" name="${f.key}" value="${esc(val ?? "")}">
+            <div id="f_${f.key}_preview" class="w-14 h-14 rounded-lg bg-cream border border-parchment flex items-center justify-center overflow-hidden flex-shrink-0">
+                ${val ? `<img src="${val}" class="w-full h-full object-cover rounded">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-moss-light/40"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`}
+            </div>
+            <button type="button" onclick="clearImagePreview('f_${f.key}')" class="text-xs font-mono text-terracotta hover:underline">Hapus</button>
+        </div>`;
+                }
+                return `<div class="form-field ${cs}">${lbl}${inp}</div>`;
+            }
+
+            function collectForm(fields) {
+                const d = {};
+                for (const f of fields) {
+                    const el = document.getElementById(`f_${f.key}`);
+                    if (!el) continue;
+                    d[f.key] =
+                        f.type === "checkbox"
+                            ? el.checked
+                            : f.type === "number"
+                              ? el.value !== ""
+                                  ? parseFloat(el.value)
+                                  : null
+                              : el.value.trim();
+                    if (f.required && !d[f.key] && d[f.key] !== false) {
+                        el.focus();
+                        el.style.borderColor = "#C4714A";
+                        el.style.boxShadow = "0 0 0 3px rgba(196,113,74,.2)";
+                        el.addEventListener(
+                            "input",
+                            () => {
+                                el.style.borderColor = "";
+                                el.style.boxShadow = "";
+                            },
+                            { once: true },
+                        );
+                        toast(`"${f.label}" wajib diisi`, "error");
+                        return null;
+                    }
+                }
+                return d;
+            }
+
+            // ══ DELETE ══════════════════════════════════════════════════════
+            let _delPending = null;
+            function openDel(mod, id, name) {
+                _delPending = { mod, id };
+                document.getElementById("del-msg").textContent =
+                    `"${name}" akan dihapus permanen dan tidak dapat dikembalikan.`;
+                const o = document.getElementById("del-overlay");
+                o.classList.remove("hidden");
+                o.classList.add("flex");
+            }
+            function closeDel() {
+                const o = document.getElementById("del-overlay");
+                o.classList.add("hidden");
+                o.classList.remove("flex");
+                _delPending = null;
+            }
+            function execDel() {
+                if (!_delPending) return;
+                const { mod, id } = _delPending;
+                if (mod === "ag-m" || mod === "ag-l") {
+                    const k = mod === "ag-m" ? "agenda_m" : "agenda_l";
+                    DB.set(
+                        k,
+                        DB.get(k).filter((r) => r.id !== id),
+                    );
+                    renderAgenda();
+                } else {
+                    DB.set(
+                        mod,
+                        DB.get(mod).filter((r) => r.id !== id),
+                    );
+                    renderMod(mod);
+                }
+                closeDel();
+                toast("Data berhasil dihapus", "success");
+                logActivity("Menghapus data", mod);
+                updateStats();
+            }
+
+            // ══ ACTIVITY LOG ════════════════════════════════════════════════
+            const modLabel = {
+                peta: "Peta Kebun",
+                warga: "Data Warga",
+                katalog: "Katalog Hijau",
+                "ag-m": "Agenda",
+                "ag-l": "Agenda Lampau",
+                arsip: "Jurnal & Arsip",
+            };
+            function logActivity(action, mod) {
+                const log = DB.get("activity");
+                log.unshift({
+                    action,
+                    mod: modLabel[mod] || mod,
+                    time: new Date().toLocaleString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                });
+                DB.set("activity", log.slice(0, 10));
+                renderActivity();
+            }
+            function renderActivity() {
+                const log = DB.get("activity");
+                const el = document.getElementById("recent-activity");
+                if (!log.length) {
+                    el.innerHTML =
+                        '<p class="text-sm text-soil-light text-center py-4 font-mono">Belum ada aktivitas</p>';
+                    return;
+                }
+                const colors = {
+                    "Peta Kebun": "bg-moss/10 text-moss",
+                    "Data Warga": "bg-terracotta/10 text-terracotta",
+                    "Katalog Hijau": "bg-moss/10 text-moss",
+                    Agenda: "bg-soil/10 text-soil",
+                    "Agenda Lampau": "bg-olive/10 text-olive",
+                    "Jurnal & Arsip": "bg-olive/10 text-olive",
+                };
+                el.innerHTML = log
+                    .slice(0, 5)
+                    .map(
+                        (l) =>
+                            `<div class="flex items-center gap-2.5"><span class="badge ${colors[l.mod] || "bg-parchment text-ink-light"} flex-shrink-0">${l.mod}</span><span class="text-sm text-ink flex-1 truncate">${l.action}</span><span class="text-xs font-mono text-soil-light flex-shrink-0">${l.time}</span></div>`,
+                    )
+                    .join("");
+            }
+
+            // ══ HELPERS ═════════════════════════════════════════════════════
+            function esc(s) {
+                return String(s ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+            function escJ(s) {
+                return String(s ?? "")
+                    .replace(/\\/g, "\\\\")
+                    .replace(/'/g, "\\'")
+                    .replace(/"/g, '\\"');
+            }
+            function hue(s) {
+                const c = [
+                    "#4A5E3A",
+                    "#C4714A",
+                    "#5C3D2E",
+                    "#3D4A2A",
+                    "#5A6B45",
+                    "#8B6355",
+                    "#2D3A22",
+                ];
+                let h = 0;
+                for (let i = 0; i < (s || "").length; i++)
+                    h = s.charCodeAt(i) + ((h << 5) - h);
+                return c[Math.abs(h) % c.length];
+            }
+            const ICONS = {
+                edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+                del: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+            };
+            function actions(mod, id, name) {
+                return `<div class="flex items-center gap-0.5 justify-end"><button onclick="openEdit('${mod}',${id})" class="btn-icon text-moss" title="Edit">${ICONS.edit}</button><button onclick="openDel('${mod}',${id},'${escJ(name)}')" class="btn-icon del text-terracotta" title="Hapus">${ICONS.del}</button></div>`;
+            }
+            function agActions(sub, id, name) {
+                return `<div class="flex items-center gap-0.5 justify-end"><button onclick="openEditAg('${sub}',${id})" class="btn-icon text-moss" title="Edit">${ICONS.edit}</button><button onclick="openDel('ag-${sub}',${id},'${escJ(name)}')" class="btn-icon del text-terracotta" title="Hapus">${ICONS.del}</button></div>`;
+            }
+
+            function showHide(wrapId, emptyId, hasData) {
+                document.getElementById(wrapId).style.display = hasData
+                    ? "block"
+                    : "none";
+                document.getElementById(emptyId).style.display = hasData
+                    ? "none"
+                    : "flex";
+            }
+
+            // ══ MODULE CONFIGS ══════════════════════════════════════════════
+            const MODS = {
+                peta: {
+                    sk: "peta",
+                    search: ["name", "farmer", "address", "type"],
+                    filt: null,
+                    fields: [
+                        {
+                            key: "name",
+                            label: "Nama Kebun",
+                            type: "text",
+                            required: true,
+                            col: 2,
+                        },
+                        {
+                            key: "type",
+                            label: "Tipe Kebun",
+                            type: "select",
+                            required: true,
+                            options: [
+                                {
+                                    value: "Kebun Komunitas",
+                                    label: "Kebun Komunitas",
+                                },
+                                { value: "Urban Farm", label: "Urban Farm" },
+                                {
+                                    value: "Kebun Edukasi",
+                                    label: "Kebun Edukasi",
+                                },
+                                {
+                                    value: "Kebun Terapeutik",
+                                    label: "Kebun Terapeutik",
+                                },
+                                {
+                                    value: "Kebun Hutan Kota",
+                                    label: "Kebun Hutan Kota",
+                                },
+                                {
+                                    value: "Kebun Tepi Sungai",
+                                    label: "Kebun Tepi Sungai",
+                                },
+                                {
+                                    value: "Pusat Komunitas",
+                                    label: "Pusat Komunitas",
+                                },
+                            ],
+                        },
+                        {
+                            key: "farmer",
+                            label: "Nama Petani",
+                            type: "text",
+                            required: true,
+                        },
+                        {
+                            key: "contact",
+                            label: "Kontak",
+                            type: "text",
+                            placeholder: "+62 812…",
+                        },
+                        {
+                            key: "instagram",
+                            label: "Instagram",
+                            type: "text",
+                            placeholder: "@username",
+                        },
+                        {
+                            key: "address",
+                            label: "Alamat Lengkap",
+                            type: "textarea",
+                            col: 2,
+                            rows: 2,
+                        },
+                        {
+                            key: "crops",
+                            label: "Tanaman (pisah koma)",
+                            type: "text",
+                            col: 2,
+                            placeholder: "Selada, Kangkung, Bayam",
+                        },
+                        {
+                            key: "lat",
+                            label: "Latitude",
+                            type: "number",
+                            step: "any",
+                            placeholder: "-6.3410",
+                        },
+                        {
+                            key: "lng",
+                            label: "Longitude",
+                            type: "number",
+                            step: "any",
+                            placeholder: "106.8295",
+                        },
+                        {
+                            key: "members",
+                            label: "Jumlah Anggota",
+                            type: "number",
+                            placeholder: "5",
+                        },
+                        {
+                            key: "area",
+                            label: "Luas Lahan",
+                            type: "text",
+                            placeholder: "82 m²",
+                        },
+                        {
+                            key: "established",
+                            label: "Tahun / Status",
+                            type: "text",
+                            placeholder: "Aktif sejak 2021",
+                        },
+                        {
+                            key: "schedule",
+                            label: "Jadwal Kunjungan",
+                            type: "text",
+                            col: 2,
+                            placeholder: "Sabtu, 08.00–11.00 WIB",
+                        },
+                        {
+                            key: "learning",
+                            label: "Fokus Pembelajaran",
+                            type: "text",
+                            col: 2,
+                        },
+                        {
+                            key: "desc",
+                            label: "Deskripsi",
+                            type: "textarea",
+                            col: 2,
+                            rows: 3,
+                        },
+                    ],
+                    row(r) {
+                        return `<tr><td><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-cream flex-shrink-0" style="background:${hue(r.name)}">${(r.name || "").slice(0, 2).toUpperCase()}</div><div><p class="font-medium text-ink">${esc(r.name)}</p><p class="text-xs text-soil-light font-mono">${r.lat && r.lng ? `${r.lat}, ${r.lng}` : "Koordinat belum diatur"}</p></div></div></td><td><span class="badge bg-moss/10 text-moss">${esc(r.type || "—")}</span></td><td class="text-sm">${esc(r.farmer || "—")}</td><td class="text-sm text-soil-light">${r.members ? r.members + " orang" : "—"}</td><td class="text-sm text-soil-light">${esc(r.area || "—")}</td><td class="text-xs font-mono text-olive-mid">${esc(r.established || "—")}</td><td>${actions("peta", r.id, r.name)}</td></tr>`;
+                    },
+                },
+                warga: {
+                    sk: "warga",
+                    search: ["name", "group", "location", "role"],
+                    filt: null,
+                    fields: [
+                        {
+                            key: "name",
+                            label: "Nama Lengkap",
+                            type: "text",
+                            required: true,
+                            col: 2,
+                        },
+                        {
+                            key: "image",
+                            label: "Foto (URL Path)",
+                            type: "text",
+                            placeholder: "/images/nama-foto.jpg",
+                            col: 2,
+                        },
+                        {
+                            key: "role",
+                            label: "Peran",
+                            type: "select",
+                            required: true,
+                            options: [
+                                { value: "Fasilitator", label: "Fasilitator" },
+                                { value: "Koordinator", label: "Koordinator" },
+                                { value: "Anggota", label: "Anggota" },
+                                { value: "Pengajar", label: "Pengajar" },
+                                { value: "Relawan", label: "Relawan" },
+                            ],
+                        },
+                        {
+                            key: "group",
+                            label: "Kelompok / Kebun",
+                            type: "text",
+                        },
+                        {
+                            key: "location",
+                            label: "Lokasi",
+                            type: "text",
+                            placeholder: "Jagakarsa, Jakarta Selatan",
+                        },
+                        {
+                            key: "contact",
+                            label: "Nomor Kontak",
+                            type: "text",
+                            placeholder: "+62 812…",
+                        },
+                        {
+                            key: "instagram",
+                            label: "Instagram",
+                            type: "text",
+                            placeholder: "@username",
+                        },
+                        {
+                            key: "bio",
+                            label: "Biografi Singkat",
+                            type: "textarea",
+                            col: 2,
+                            rows: 3,
+                        },
+                        {
+                            key: "philosophy",
+                            label: "Filosofi / Kutipan",
+                            type: "textarea",
+                            col: 2,
+                            rows: 2,
+                        },
+                        {
+                            key: "crops",
+                            label: "Tanaman / Keahlian (pisah koma)",
+                            type: "text",
+                            col: 2,
+                        },
+                        {
+                            key: "isCore",
+                            label: "Fasilitator Utama",
+                            type: "checkbox",
+                            checkLabel:
+                                "Tandai sebagai Fasilitator Utama Sekolah Tani Kota",
+                            col: 2,
+                        },
+                    ],
+                    row(r) {
+                        const rColors = {
+                            Fasilitator: "bg-moss/10 text-moss",
+                            Koordinator: "bg-terracotta/10 text-terracotta",
+                            Anggota: "bg-parchment text-ink-light",
+                            Pengajar: "bg-soil/10 text-soil",
+                            Relawan: "bg-olive/10 text-olive",
+                        };
+                        const initials = (r.name || "")
+                            .split(" ")
+                            .map((w) => w[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase();
+                        return `<tr><td><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full flex items-center justify-center text-cream text-xs font-bold flex-shrink-0" style="background:${hue(r.name)}">${initials}</div><div><p class="font-medium text-ink text-sm">${esc(r.name)}</p>${r.isCore ? '<span class="badge bg-moss/10 text-moss">UTAMA</span>' : ""}</div></div></td><td><span class="badge ${rColors[r.role] || "bg-parchment text-ink-light"}">${esc(r.role || "—")}</span></td><td class="text-sm text-soil-light">${esc(r.group || "—")}</td><td class="text-sm text-soil-light">${esc(r.location || "—")}</td><td class="text-xs font-mono">${esc(r.contact || "—")}</td><td>${actions("warga", r.id, r.name)}</td></tr>`;
+                    },
+                },
+                katalog: {
+                    sk: "katalog",
+                    search: ["name", "farmer", "location", "cultivationMethod"],
+                    filt: { elId: "filt-katalog", field: "category" },
+                    fields: [
+                        {
+                            key: "name",
+                            label: "Nama Tanaman / Produk",
+                            type: "text",
+                            required: true,
+                            col: 2,
+                        },
+                        {
+                            key: "category",
+                            label: "Kategori",
+                            type: "select",
+                            required: true,
+                            options: [
+                                {
+                                    value: "sayur-sayuran",
+                                    label: "Sayur Sayuran",
+                                },
+                                { value: "buah-buahan", label: "Buah Buahan" },
+                                {
+                                    value: "toga",
+                                    label: "Tanaman Obat Keluarga (TOGA)",
+                                },
+                                {
+                                    value: "tanaman-hias",
+                                    label: "Tanaman Hias",
+                                },
+                                { value: "olahan", label: "Produk Olahan" },
+                            ],
+                        },
+                        {
+                            key: "farmer",
+                            label: "Petani / Sumber",
+                            type: "text",
+                        },
+                        {
+                            key: "location",
+                            label: "Lokasi Kebun",
+                            type: "text",
+                        },
+                        {
+                            key: "harvestSeason",
+                            label: "Musim Panen",
+                            type: "text",
+                            placeholder: "Maret – Mei / Sepanjang tahun",
+                        },
+                        {
+                            key: "cultivationMethod",
+                            label: "Metode Budidaya",
+                            type: "text",
+                            placeholder: "Organik tradisional",
+                        },
+                        {
+                            key: "ecologicalNote",
+                            label: "Catatan Ekologi",
+                            type: "textarea",
+                            col: 2,
+                            rows: 3,
+                            placeholder: "Ceritakan keistimewaan tanaman ini…",
+                        },
+                    ],
+                    row(r) {
+                        const cC = {
+                            "sayur-sayuran": "bg-moss/10 text-moss",
+                            "buah-buahan": "bg-terracotta/10 text-terracotta",
+                            toga: "bg-soil/10 text-soil",
+                            "tanaman-hias": "bg-olive/10 text-olive",
+                            olahan: "bg-parchment text-ink-light",
+                        };
+                        const cL = {
+                            "sayur-sayuran": "Sayuran",
+                            "buah-buahan": "Buahan",
+                            toga: "TOGA",
+                            "tanaman-hias": "Tanaman Hias",
+                            olahan: "Olahan",
+                        };
+                        const cc =
+                            cC[r.category] || "bg-parchment text-ink-light";
+                        return `<tr><td><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${cc}">${(r.name || "").slice(0, 2).toUpperCase()}</div><span class="font-medium text-ink">${esc(r.name)}</span></div></td><td><span class="badge ${cc}">${cL[r.category] || esc(r.category) || "—"}</span></td><td class="text-sm text-soil-light">${esc(r.farmer || "—")}</td><td class="text-sm">${esc(r.harvestSeason || "—")}</td><td class="text-xs font-mono text-ink-light">${esc(r.cultivationMethod || "—")}</td><td>${actions("katalog", r.id, r.name)}</td></tr>`;
+                    },
+                },
+                arsip: {
+                    sk: "arsip",
+                    search: ["judul", "penulis", "tags", "deskripsi"],
+                    filt: { elId: "filt-arsip", field: "jenis" },
+                    fields: [
+                        {
+                            key: "judul",
+                            label: "Judul Dokumen / Kegiatan",
+                            type: "text",
+                            required: true,
+                            col: 2,
+                        },
+                        {
+                            key: "jenis",
+                            label: "Jenis Dokumen",
+                            type: "select",
+                            required: true,
+                            options: [
+                                {
+                                    value: "Jurnal Panen",
+                                    label: "Jurnal Panen",
+                                },
+                                {
+                                    value: "Modul Belajar",
+                                    label: "Modul Belajar",
+                                },
+                                { value: "Manifesto", label: "Manifesto" },
+                                { value: "Laporan", label: "Laporan" },
+                                {
+                                    value: "Dokumentasi Foto",
+                                    label: "Dokumentasi Foto",
+                                },
+                                { value: "Riset", label: "Riset" },
+                                {
+                                    value: "Catatan Lapangan",
+                                    label: "Catatan Lapangan",
+                                },
+                                { value: "Kegiatan", label: "Kegiatan" },
+                            ],
+                        },
+                        {
+                            key: "penulis",
+                            label: "Penulis / Sumber",
+                            type: "text",
+                        },
+                        { key: "tanggal", label: "Tanggal", type: "date" },
+                        {
+                            key: "image",
+                            label: "Foto Kegiatan / Gambar",
+                            type: "image",
+                            col: 2,
+                        },
+                        {
+                            key: "deskripsi",
+                            label: "Deskripsi",
+                            type: "textarea",
+                            col: 2,
+                            rows: 3,
+                        },
+                        {
+                            key: "tags",
+                            label: "Tags (pisah koma)",
+                            type: "text",
+                            col: 2,
+                            placeholder: "agroekologi, panen, komunitas",
+                        },
+                    ],
+                    row(r) {
+                        const jC = {
+                            "Jurnal Panen": "bg-moss/10 text-moss",
+                            "Modul Belajar": "bg-terracotta/10 text-terracotta",
+                            Manifesto: "bg-soil/10 text-soil",
+                            Laporan: "bg-olive/10 text-olive",
+                            "Dokumentasi Foto": "bg-parchment text-ink-light",
+                            Riset: "bg-moss-dark/10 text-moss-dark",
+                            "Catatan Lapangan": "bg-cream-dark text-ink-light",
+                            Kegiatan: "bg-moss/10 text-moss",
+                        };
+                        const tags = (r.tags || "")
+                            .split(",")
+                            .map((t) => t.trim())
+                            .filter(Boolean);
+                        const imgHtml = r.image
+                            ? `<img src="${r.image}" class="w-8 h-8 rounded object-cover flex-shrink-0 border border-parchment">`
+                            : `<div class="w-8 h-8 rounded bg-cream-dark border border-parchment flex items-center justify-center text-[10px] font-bold text-moss flex-shrink-0 font-mono">${(r.judul || "").slice(0, 2).toUpperCase()}</div>`;
+                        return `<tr><td><div class="flex items-center gap-3">${imgHtml}<div><p class="font-medium text-ink text-sm">${esc(r.judul)}</p>${r.deskripsi ? `<p class="text-xs text-soil-light mt-0.5">${esc(r.deskripsi.slice(0, 55))}${r.deskripsi.length > 55 ? "…" : ""}</p>` : ""}</div></div></td><td><span class="badge ${jC[r.jenis] || "bg-parchment text-ink-light"}">${esc(r.jenis || "—")}</span></td><td class="text-sm text-soil-light">${esc(r.penulis || "—")}</td><td class="text-xs font-mono">${esc(r.tanggal || "—")}</td><td><div class="flex flex-wrap gap-1">${
+                            tags.length
+                                ? tags
+                                      .slice(0, 3)
+                                      .map(
+                                          (t) =>
+                                              `<span class="text-[10px] font-mono bg-parchment px-1.5 py-0.5 rounded">${esc(t)}</span>`,
+                                      )
+                                      .join("")
+                                : '<span class="text-xs text-soil-light">—</span>'
+                        }</div></td><td>${actions("arsip", r.id, r.judul)}</td></tr>`;
+                    },
+                },
+            };
+
+            const AGENDA_FIELDS = [
+                {
+                    key: "_type",
+                    label: "Simpan Sebagai",
+                    type: "select",
+                    required: true,
+                    col: 2,
+                    options: [
+                        { value: "mendatang", label: "📅 Acara Mendatang" },
+                        { value: "lampau", label: "📁 Acara Lampau / Arsip" },
+                    ],
+                },
+                {
+                    key: "title",
+                    label: "Judul Acara",
+                    type: "text",
+                    required: true,
+                    col: 2,
+                },
+                {
+                    key: "date",
+                    label: "Tanggal",
+                    type: "text",
+                    required: true,
+                    placeholder: "14 Juni 2026",
+                },
+                {
+                    key: "location",
+                    label: "Lokasi",
+                    type: "text",
+                    placeholder: "Gudskul Ekosistem",
+                },
+                {
+                    key: "tag",
+                    label: "Tag / Jenis",
+                    type: "text",
+                    placeholder: "Workshop, Diskusi…",
+                },
+                {
+                    key: "category",
+                    label: "Kategori",
+                    type: "select",
+                    options: [
+                        { value: "education", label: "Pendidikan / Workshop" },
+                        { value: "tour", label: "Kunjungan Lapangan" },
+                        { value: "forum", label: "Forum / Diskusi" },
+                        { value: "community", label: "Acara Komunitas" },
+                        { value: "exhibition", label: "Pameran" },
+                    ],
+                },
+                {
+                    key: "collaborators",
+                    label: "Kolaborator (pisah koma)",
+                    type: "text",
+                    col: 2,
+                    placeholder: "Majelis Sayur, Gudskul, ruangrupa",
+                },
+                {
+                    key: "image",
+                    label: "Foto Dokumentasi / Gambar (untuk acara lampau)",
+                    type: "image",
+                    col: 2,
+                },
+                {
+                    key: "desc",
+                    label: "Deskripsi",
+                    type: "textarea",
+                    col: 2,
+                    rows: 3,
+                },
+                {
+                    key: "recap",
+                    label: "Rekap / Hasil (untuk acara lampau)",
+                    type: "textarea",
+                    col: 2,
+                    rows: 2,
+                    placeholder: "30 peserta, 5 km perjalanan…",
+                },
+                {
+                    key: "featured",
+                    label: "Acara Unggulan",
+                    type: "checkbox",
+                    checkLabel: "Tandai sebagai acara unggulan",
+                    col: 2,
+                },
+            ];
+
+            // ══ GENERIC RENDER ══════════════════════════════════════════════
+            function renderMod(key) {
+                const m = MODS[key];
+                if (!m) return;
+                let data = DB.get(m.sk);
+                const srch = document.getElementById(`srch-${key}`);
+                const q = (srch?.value || "").toLowerCase().trim();
+                if (q)
+                    data = data.filter((r) =>
+                        m.search.some((f) =>
+                            String(r[f] || "")
+                                .toLowerCase()
+                                .includes(q),
+                        ),
+                    );
+                if (m.filt) {
+                    const fEl = document.getElementById(m.filt.elId);
+                    const fv = fEl?.value || "";
+                    if (fv) data = data.filter((r) => r[m.filt.field] === fv);
+                }
+                const tbody = document.getElementById(`tbody-${key}`);
+                showHide(`wrap-${key}`, `empty-${key}`, data.length > 0);
+                if (data.length)
+                    tbody.innerHTML = data.map((r) => m.row(r)).join("");
+                updateBadges();
+            }
+
+            // ══ OPEN ADD / EDIT ═════════════════════════════════════════════
+            const mLbl = {
+                peta: "Kebun",
+                warga: "Warga",
+                katalog: "Produk",
+                arsip: "Dokumen",
+            };
+            function openAdd(key) {
+                if (key === "agenda") {
+                    openAddAgenda();
+                    return;
+                }
+                const m = MODS[key];
+                openModal({
+                    title: `Tambah ${mLbl[key] || key}`,
+                    sub: "Isi formulir dengan lengkap",
+                    fields: m.fields,
+                    onSave(d) {
+                        const arr = DB.get(m.sk);
+                        d.id = DB.id(arr);
+                        d.createdAt = new Date().toISOString();
+                        arr.push(d);
+                        DB.set(m.sk, arr);
+                        renderMod(key);
+                        closeModal();
+                        toast(
+                            `${mLbl[key] || "Data"} berhasil ditambahkan!`,
+                            "success",
+                        );
+                        logActivity(`Menambah ${mLbl[key]}`, key);
+                        updateStats();
+                    },
+                });
+            }
+            function openEdit(key, id) {
+                const m = MODS[key];
+                const arr = DB.get(m.sk);
+                const item = arr.find((r) => r.id === id);
+                if (!item) return;
+                openModal({
+                    title: `Edit ${mLbl[key] || key}`,
+                    sub: item.name || item.judul || "",
+                    fields: m.fields,
+                    data: item,
+                    saveLabel: "Simpan Perubahan",
+                    onSave(d) {
+                        const idx = arr.findIndex((r) => r.id === id);
+                        arr[idx] = { ...item, ...d };
+                        DB.set(m.sk, arr);
+                        renderMod(key);
+                        closeModal();
+                        toast("Perubahan berhasil disimpan!", "success");
+                        logActivity(`Mengedit ${mLbl[key]}`, key);
+                    },
+                });
+            }
+
+            // ══ AGENDA ══════════════════════════════════════════════════════
+            function openAddAgenda(preType) {
+                openModal({
+                    title: "Tambah Acara",
+                    sub: "Pilih jenis acara di bawah",
+                    fields: AGENDA_FIELDS,
+                    data: preType ? { _type: preType } : {},
+                    saveBg: "bg-soil hover:opacity-90",
+                    onSave(d) {
+                        const isL = d._type === "lampau";
+                        const k = isL ? "agenda_l" : "agenda_m";
+                        delete d._type;
+                        const arr = DB.get(k);
+                        d.id = DB.id(arr);
+                        d.createdAt = new Date().toISOString();
+                        arr.push(d);
+                        DB.set(k, arr);
+                        renderAgenda();
+                        closeModal();
+                        toast("Acara berhasil ditambahkan!", "success");
+                        logActivity("Menambah Acara", isL ? "ag-l" : "ag-m");
+                        updateStats();
+                        updatePreview();
+                    },
+                });
+            }
+            function openEditAg(sub, id) {
+                const k = sub === "m" ? "agenda_m" : "agenda_l";
+                const arr = DB.get(k);
+                const item = arr.find((r) => r.id === id);
+                if (!item) return;
+                openModal({
+                    title: "Edit Acara",
+                    sub: item.title || "",
+                    fields: AGENDA_FIELDS,
+                    data: {
+                        ...item,
+                        _type: sub === "m" ? "mendatang" : "lampau",
+                    },
+                    saveLabel: "Simpan Perubahan",
+                    saveBg: "bg-soil hover:opacity-90",
+                    onSave(d) {
+                        const newSub = d._type === "lampau";
+                        const newK = newSub ? "agenda_l" : "agenda_m";
+                        delete d._type;
+                        // If type changed, remove from old and add to new
+                        if (newK !== k) {
+                            DB.set(
+                                k,
+                                arr.filter((r) => r.id !== id),
+                            );
+                            const newArr = DB.get(newK);
+                            d.id = DB.id(newArr);
+                            newArr.push(d);
+                            DB.set(newK, newArr);
+                        } else {
+                            const idx = arr.findIndex((r) => r.id === id);
+                            arr[idx] = { ...item, ...d };
+                            DB.set(k, arr);
+                        }
+                        renderAgenda();
+                        closeModal();
+                        toast("Perubahan berhasil disimpan!", "success");
+                        logActivity("Mengedit Acara", `ag-${sub}`);
+                        updatePreview();
+                    },
+                });
+            }
+            function renderAgendaTable(sub) {
+                const k = sub === "m" ? "agenda_m" : "agenda_l";
+                const data = DB.get(k);
+                showHide(`wrap-ag-${sub}`, `empty-ag-${sub}`, data.length > 0);
+                if (!data.length) return;
+                const tColors = {
+                    education: "bg-terracotta/10 text-terracotta",
+                    tour: "bg-moss/10 text-moss",
+                    forum: "bg-soil/10 text-soil",
+                    community: "bg-olive/10 text-olive",
+                    exhibition: "bg-parchment text-ink-light",
+                };
+                document.getElementById(`tbody-ag-${sub}`).innerHTML = data
+                    .map((r) => {
+                        const tc =
+                            tColors[r.category] ||
+                            "bg-parchment text-ink-light";
+                        const col5 =
+                            sub === "l" && r.recap
+                                ? esc(r.recap.slice(0, 40)) + "…"
+                                : (r.collaborators || "—")
+                                      .split(",")
+                                      .slice(0, 2)
+                                      .join(", ");
+                        const imgHtml =
+                            sub === "l" && r.image
+                                ? `<img src="${r.image}" class="w-8 h-8 rounded object-cover flex-shrink-0 border border-parchment">`
+                                : `<div class="w-8 h-8 rounded bg-cream-dark border border-parchment flex items-center justify-center text-[10px] font-bold text-moss flex-shrink-0 font-mono">${(r.title || "").slice(0, 2).toUpperCase()}</div>`;
+                        return `<tr><td><div class="flex items-center gap-3">${imgHtml}<div><p class="font-medium text-ink text-sm">${esc(r.title)}</p>${r.featured ? '<span class="badge bg-terracotta/10 text-terracotta">★ UNGGULAN</span>' : ""}</div></div></td><td class="text-sm font-mono">${esc(r.date || "—")}</td><td class="text-sm text-soil-light">${esc(r.location || "—")}</td><td><span class="badge ${tc}">${esc(r.tag || "—")}</span></td><td class="text-xs text-soil-light">${col5}</td><td>${agActions(sub, r.id, r.title)}</td></tr>`;
+                    })
+                    .join("");
+            }
+            function renderAgenda() {
+                renderAgendaTable("m");
+                renderAgendaTable("l");
+                updateBadges();
+            }
+            function switchAgTab(tab) {
+                const m = document.getElementById("ag-mendatang"),
+                    l = document.getElementById("ag-lampau");
+                const bm = document.getElementById("ag-btn-m"),
+                    bl = document.getElementById("ag-btn-l");
+                if (tab === "mendatang") {
+                    m.classList.remove("hidden");
+                    l.classList.add("hidden");
+                    bm.className =
+                        "px-4 py-1.5 rounded-lg text-sm font-medium bg-moss text-cream transition-all";
+                    bl.className =
+                        "px-4 py-1.5 rounded-lg text-sm font-medium text-ink-light transition-all";
+                } else {
+                    l.classList.remove("hidden");
+                    m.classList.add("hidden");
+                    bl.className =
+                        "px-4 py-1.5 rounded-lg text-sm font-medium bg-moss text-cream transition-all";
+                    bm.className =
+                        "px-4 py-1.5 rounded-lg text-sm font-medium text-ink-light transition-all";
+                }
+            }
+
+            // ══ STATS & BADGES ══════════════════════════════════════════════
+            function updateStats() {
+                document.getElementById("st-kebun").textContent =
+                    DB.get("peta").length;
+                document.getElementById("st-warga").textContent =
+                    DB.get("warga").length;
+                document.getElementById("st-katalog").textContent =
+                    DB.get("katalog").length;
+                document.getElementById("st-agenda").textContent =
+                    DB.get("agenda_m").length + DB.get("agenda_l").length;
+                document.getElementById("st-arsip").textContent =
+                    DB.get("arsip").length;
+            }
+            function updateBadges() {
+                [
+                    ["peta", "peta"],
+                    ["warga", "warga"],
+                    ["katalog", "katalog"],
+                    ["arsip", "arsip"],
+                ].forEach(([key, sk]) => {
+                    const b = document.getElementById(`bdg-${key}`);
+                    if (!b) return;
+                    const n = DB.get(sk).length;
+                    b.textContent = n;
+                    b.classList.toggle("hidden", n === 0);
+                });
+                const an =
+                    DB.get("agenda_m").length + DB.get("agenda_l").length;
+                const ab = document.getElementById("bdg-agenda");
+                if (ab) {
+                    ab.textContent = an;
+                    ab.classList.toggle("hidden", an === 0);
+                }
+            }
+            function updatePreview() {
+                const data = DB.get("agenda_m").slice(0, 3);
+                const el = document.getElementById("upcoming-preview");
+                if (!data.length) {
+                    el.innerHTML =
+                        '<p class="text-sm text-soil-light text-center py-4 font-mono">Belum ada agenda</p>';
+                    return;
+                }
+                const cc = {
+                    education:
+                        "text-terracotta bg-terracotta/10 border-terracotta/20",
+                    tour: "text-moss bg-moss/10 border-moss/20",
+                    forum: "text-soil bg-soil/10 border-soil/20",
+                    community: "text-olive bg-olive/10 border-olive/20",
+                    exhibition: "text-ink-light bg-parchment border-parchment",
+                };
+                el.innerHTML = data
+                    .map((ev) => {
+                        const p = (ev.date || "").split(" ");
+                        return `<div class="flex items-start gap-3"><div class="w-11 h-11 rounded-lg ${cc[ev.category] || cc.exhibition} border flex flex-col items-center justify-center flex-shrink-0"><span class="text-xs font-bold font-mono leading-none">${p[0] || "?"}</span><span class="text-[10px] uppercase">${(p[1] || "?").slice(0, 3)}</span></div><div><p class="text-sm font-medium text-ink leading-tight">${esc(ev.title)}</p><p class="text-xs text-soil-light">${esc(ev.location || "")}</p></div></div>`;
+                    })
+                    .join("");
+            }
+
+            // ══ SETTINGS ════════════════════════════════════════════════════
+            function loadSettings() {
+                const s = DB.geto("settings");
+                if (s.nama) document.getElementById("set-nama").value = s.nama;
+                if (s.email)
+                    document.getElementById("set-email").value = s.email;
+                if (s.komunitas)
+                    document.getElementById("set-komunitas").value =
+                        s.komunitas;
+                if (s.tagline)
+                    document.getElementById("set-tagline").value = s.tagline;
+                if (s.nama) {
+                    document.getElementById("admin-name-disp").textContent =
+                        s.nama;
+                    document.getElementById("admin-avatar").textContent = s.nama
+                        .charAt(0)
+                        .toUpperCase();
+                }
+            }
+            function saveSettings(e) {
+                e.preventDefault();
+                const s = {
+                    nama: document.getElementById("set-nama").value.trim(),
+                    email: document.getElementById("set-email").value.trim(),
+                    komunitas: document
+                        .getElementById("set-komunitas")
+                        .value.trim(),
+                    tagline: document
+                        .getElementById("set-tagline")
+                        .value.trim(),
+                };
+                DB.seto("settings", s);
+                if (s.nama) {
+                    document.getElementById("admin-name-disp").textContent =
+                        s.nama;
+                    document.getElementById("admin-avatar").textContent = s.nama
+                        .charAt(0)
+                        .toUpperCase();
+                }
+                toast("Pengaturan berhasil disimpan!", "success");
+            }
+            function exportData() {
+                const d = {
+                    peta: DB.get("peta"),
+                    warga: DB.get("warga"),
+                    katalog: DB.get("katalog"),
+                    agenda_m: DB.get("agenda_m"),
+                    agenda_l: DB.get("agenda_l"),
+                    arsip: DB.get("arsip"),
+                    settings: DB.geto("settings"),
+                    exportedAt: new Date().toISOString(),
+                };
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(
+                    new Blob([JSON.stringify(d, null, 2)], {
+                        type: "application/json",
+                    }),
+                );
+                a.download = `majelis-sayur-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                toast("Data berhasil diexport!", "success");
+            }
+            function importData(e) {
+                const f = e.target.files[0];
+                if (!f) return;
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    try {
+                        const d = JSON.parse(ev.target.result);
+                        if (d.peta) DB.set("peta", d.peta);
+                        if (d.warga) DB.set("warga", d.warga);
+                        if (d.katalog) DB.set("katalog", d.katalog);
+                        if (d.agenda_m) DB.set("agenda_m", d.agenda_m);
+                        if (d.agenda_l) DB.set("agenda_l", d.agenda_l);
+                        if (d.arsip) DB.set("arsip", d.arsip);
+                        if (d.settings) DB.seto("settings", d.settings);
+                        initAll();
+                        toast("Data berhasil diimport!", "success");
+                    } catch {
+                        toast("File JSON tidak valid", "error");
+                    }
+                };
+                r.readAsText(f);
+                e.target.value = "";
+            }
+            function resetData() {
+                openModal({
+                    title: "Reset Semua Data",
+                    sub: "Tindakan ini tidak dapat dibatalkan",
+                    fields: [
+                        {
+                            key: "_c",
+                            label: 'Ketik "HAPUS SEMUA" untuk konfirmasi',
+                            type: "text",
+                            required: true,
+                            col: 2,
+                            placeholder: "HAPUS SEMUA",
+                        },
+                    ],
+                    saveLabel: "Reset Permanen",
+                    saveBg: "bg-terracotta hover:opacity-90",
+                    onSave(d) {
+                        if (d._c !== "HAPUS SEMUA") {
+                            toast("Konfirmasi tidak sesuai", "error");
+                            return;
+                        }
+                        [
+                            "peta",
+                            "warga",
+                            "katalog",
+                            "agenda_m",
+                            "agenda_l",
+                            "arsip",
+                            "activity",
+                        ].forEach((k) => DB.set(k, []));
+                        initAll();
+                        closeModal();
+                        toast("Semua data telah direset", "success");
+                    },
+                });
+            }
+
+            // ══ TAB SWITCH ══════════════════════════════════════════════════
+            function toggleSidebar(open) {
+                const sidebar = document.getElementById("admin-sidebar");
+                const backdrop = document.getElementById("sidebar-backdrop");
+                if (open) {
+                    sidebar.classList.remove("-translate-x-full");
+                    backdrop.classList.remove("hidden");
+                } else {
+                    sidebar.classList.add("-translate-x-full");
+                    backdrop.classList.add("hidden");
+                }
+            }
+            function switchTab(tabId, element) {
+                document
+                    .querySelectorAll(".tab-content")
+                    .forEach((el) => el.classList.remove("active"));
+                document.querySelectorAll(".sidebar-item").forEach((el) => {
+                    el.classList.remove(
+                        "active",
+                        "text-moss-dark",
+                        "font-medium",
+                    );
+                    el.classList.add("text-ink-light");
+                });
+                document.getElementById(tabId).classList.add("active");
+                if (element) {
+                    element.classList.remove("text-ink-light");
+                    element.classList.add(
+                        "active",
+                        "text-moss-dark",
+                        "font-medium",
+                    );
+                }
+                if (window.innerWidth < 768) {
+                    toggleSidebar(false);
+                }
+            }
+
+            // ══ CHARTS ══════════════════════════════════════════════════════
+            function initCharts() {
+                Chart.defaults.font.family = "'DM Sans',sans-serif";
+                Chart.defaults.color = "#8B6355";
+                Chart.defaults.scale.grid.color = "rgba(232,223,200,.5)";
+                new Chart(
+                    document
+                        .getElementById("participationChart")
+                        .getContext("2d"),
+                    {
+                        type: "bar",
+                        data: {
+                            labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun"],
+                            datasets: [
+                                {
+                                    label: "Peserta",
+                                    data: [40, 30, 200, 45, 60, 50],
+                                    backgroundColor: "#4A5E3A",
+                                    borderRadius: 4,
+                                    barPercentage: 0.5,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    border: { display: false },
+                                },
+                                x: {
+                                    border: { display: false },
+                                    grid: { display: false },
+                                },
+                            },
+                        },
+                    },
+                );
+                new Chart(
+                    document.getElementById("growthChart").getContext("2d"),
+                    {
+                        type: "line",
+                        data: {
+                            labels: [
+                                "2021",
+                                "2022",
+                                "2023",
+                                "2024",
+                                "2025",
+                                "2026",
+                            ],
+                            datasets: [
+                                {
+                                    data: [400, 650, 800, 1000, 1200, 1500],
+                                    borderColor: "#C4714A",
+                                    backgroundColor: "rgba(196,113,74,.1)",
+                                    borderWidth: 2,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointBackgroundColor: "#F9F5EE",
+                                    pointBorderColor: "#C4714A",
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { display: false },
+                                x: {
+                                    border: { display: false },
+                                    grid: { display: false },
+                                },
+                            },
+                        },
+                    },
+                );
+                new Chart(
+                    document.getElementById("categoryChart").getContext("2d"),
+                    {
+                        type: "doughnut",
+                        data: {
+                            labels: [
+                                "Komunitas",
+                                "Urban Farm",
+                                "Edukasi",
+                                "Tepi Sungai",
+                                "Hutan Kota",
+                            ],
+                            datasets: [
+                                {
+                                    data: [3, 2, 2, 1, 1],
+                                    backgroundColor: [
+                                        "#4A5E3A",
+                                        "#6B7F58",
+                                        "#C4714A",
+                                        "#5C3D2E",
+                                        "#3D4A2A",
+                                    ],
+                                    borderWidth: 0,
+                                    hoverOffset: 4,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: "70%",
+                            plugins: {
+                                legend: {
+                                    position: "right",
+                                    labels: {
+                                        usePointStyle: true,
+                                        boxWidth: 8,
+                                        padding: 10,
+                                        font: { size: 10 },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                );
+            }
+
+            // ══ INIT ════════════════════════════════════════════════════════
+            function initAll() {
+                renderMod("peta");
+                renderMod("warga");
+                renderMod("katalog");
+                renderMod("arsip");
+                renderAgenda();
+                updateStats();
+                updateBadges();
+                updatePreview();
+                renderActivity();
+                loadSettings();
+                lucide.createIcons();
+            }
+            document.addEventListener("DOMContentLoaded", () => {
+                initCharts();
+                initAll();
+            });
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    closeModal();
+                    closeDel();
+                }
+            });
+        </script>
+    </body>
+</html>
